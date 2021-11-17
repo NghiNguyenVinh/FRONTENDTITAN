@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Title</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <style>
+        .addtoDo {
+            top: 80%;
+            left: 80%;
+            position: absolute;
+        }
+    </style>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+</head>
+
+<body>
+    <div id='root' ></div>
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-success addtoDo" onclick="showModal()">
+        <i class="fa fa-plus" aria-hidden="true"></i>
+    </button>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+</body>
+<!-- Todo Script -->
+<script>
+    //INNER HTML
+    var html = ``
+    //INNER Modal footer
+    var inputBody = ``
+    //INNER inputForm
+    var inputForm = ``
+    //random ID
+    function guidGenerator() {
+        var S4 = function () {
+            return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        };
+        return (
+            S4() +
+            S4() +
+            "-" +
+            S4() +
+            "-" +
+            S4() +
+            "-" +
+            S4() +
+            "-" +
+            S4() +
+            S4() +
+            S4()
+        );
+    }
+    //random String
+    let randomString = () => {
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
+    //fakeAPI
+    //todoList
+    const todoList = JSON.parse(sessionStorage.getItem('todoList')) || []
+    //Add todo
+    //Access public
+    function addTodo(event) {
+        event.preventDefault();
+        let fname = document.getElementById("fullname").value;
+        let cla = document.getElementById("class").value;
+        let sta = document.getElementById("status").value;
+        let TODO = {
+            ID: guidGenerator(),
+            'FULLNAME': fname,
+            'CLASS': cla || "",
+            'STATUS': sta || "",
+        };
+        todoList.push(TODO)
+        sessionStorage.setItem('todoList', JSON.stringify(todoList))
+        $("#modelId").modal("hide");
+        document.getElementById('fullname').value = ''
+        document.getElementById('class').value = ''
+        document.getElementById('status').value = ''
+        inputForm = ''
+        showtodoList()
+    }
+    //@access public
+    //Show todoList
+    function showtodoList() {
+        let storage = JSON.parse(sessionStorage.getItem('todoList')) || todoList
+        let tableBody = storage.map((todo, index) => {
+            return `
+            <tr>
+                <td >${index + 1}</td>
+                <td>${todo.FULLNAME}</td>
+                <td>${todo.CLASS}</td>
+                <td>${todo.STATUS}</td>
+            <td>
+              <button type="button" class="btn btn-secondary" onclick="showeditTodo('${todo.ID}')">EDIT</button>
+              <button type="button" class="btn btn-secondary" onclick ="deteleTodo('${todo.ID}')">DELETE</button>
+            </td>
+          </tr>
+            `
+        })
+        html = `
+        <!-- Table  -->
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>NUMBER</th>
+            <th>FULLNAME</th>
+            <th>CLASS</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableBody.join('')}
+        </tbody>
+      </table>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">TODO TABLE</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="addTodo(event)">
+                        ${inputForm}
+                        <div class="modal-footer">
+                           ${inputBody}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+        `
+        document.getElementById('root').innerHTML = html
+
+    }
+    showtodoList()
+
+    //Delete todo
+    function deteleTodo(id) {
+        let Id = todoList.findIndex(x => x.ID === id)
+        if (Id === -1) return
+        todoList.splice(Id, 1)
+        sessionStorage.setItem('todoList', JSON.stringify(todoList))
+        showtodoList()
+    }
+    //edit Todo
+    function editTodo(fullNameid, classNameid, statusNameid, indexId) {
+        todoList.map((todo, index) => {
+            if (index == indexId) {
+                let TODO = {
+                    ID: todo.ID,
+                    'FULLNAME': fullNameid.value,
+                    'CLASS': classNameid.value || "",
+                    'STATUS': statusNameid.value || "",
+                };
+                todoList[index] = TODO
+            }
+        })
+        sessionStorage.setItem('todoList', JSON.stringify(todoList))
+        $("#modelId").modal("hide");
+        statusNameid = ''
+        fullNameid = ''
+        classNameid = ''
+        inputForm = ``
+        showtodoList()
+    }
+    //show Edit todoList
+    function showeditTodo(id) {
+        let storage = JSON.parse(sessionStorage.getItem('todoList'))
+        let Id = todoList.findIndex(x => x.ID === id)
+        if (Id === -1) return
+        storage.map((todo, index) => {
+            if (Id == index) {
+                let idList = {
+                    fullNameid: 'abc' + randomString().toString(),
+                    classNameid: 'dfh' + randomString().toString(),
+                    statusNameid: 'gkh' + randomString().toString()
+                }
+                inputBody = `<input type='button' value='EDIT' onclick="editTodo(${idList.fullNameid},${idList.classNameid},${idList.statusNameid},${Id})" />
+                <input type ="button" onclick ="closeModal()" value="CANCEL"/>
+                `
+                inputForm = `
+                FULLNAME :
+                <input type="text" id = '${idList.fullNameid}' value='${todo.FULLNAME}'  class="w-100" required />
+                CLASS :
+                <input type="text" id ='${idList.classNameid}'  value='${todo.CLASS}'  class="w-100" />
+                STATUS :
+                <input type="text" id = '${idList.statusNameid}'  value='${todo.STATUS}'  class="w-100" />
+                `
+            }
+        })
+        showtodoList()
+        $("#modelId").modal("show");
+    }
+    //showModal
+    function showModal() {
+        inputForm = `
+        FULLNAME :
+        <input type="text"  name="fname" id="fullname"  class="w-100" required />
+        CLASS :
+        <input type="text"  name="cla" id="class"  class="w-100" />
+        STATUS :
+        <input type="text"  name="sta" id="status"  class="w-100" />
+        `
+        inputBody = `<input type='submit' value='ADD' />
+        <input type ="button" onclick ="closeModal()" value="CANCEL"/>
+        `
+        showtodoList()
+        $("#modelId").modal("show");
+    }
+    //Close Modal
+    function closeModal() {
+        $("#modelId").modal("hide");
+        document.getElementById('fullname').value = ''
+        document.getElementById('class').value = ''
+        document.getElementById('status').value = ''
+    }
+</script>
+
+</html>
